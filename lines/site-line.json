@@ -1,0 +1,20 @@
+{
+  "siteId": "site-1",
+  "lineId": "line-1",
+  "machines": [
+    {
+      "machineId": "printer-01",
+      "process": "print",
+      "description": "3D printer",
+      "carrier": "none",
+      "cycleSec": 5,
+      "changeoverSec": 0,
+      "rejectReason": "print failed",
+      "recipes": { "RCP-PRINT": ["1"] },
+      "materials": [],
+      "measurements": [],
+      "faults": {},
+      "requireArtifact": true
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+# A factory site on one machine: Long Tail on DBOS, Postgres, NATS for the
+# dashboard's live updates, Mosquitto for the machines, and a mock printer.
+# The site takes its work from a cloud Long Tail at CLOUD_URL; the default
+# points at the long-tail-temporal-cloud stack on this machine.
+services:
+  app:
+    build: { context: ., target: dev }
+    ports:
+      - "${APP_PORT:-3700}:3000"
+      - "${ASSET_HOST_PORT:-3701}:3001"
+    environment:
+      PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: longtail
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret}
+      LT_ADMIN_USER: ${LT_ADMIN_USER:-superadmin}
+      LT_ADMIN_PASSWORD: ${LT_ADMIN_PASSWORD:-l0ngt@1l}
+      NATS_URL: nats://nats:4222
+      NATS_TOKEN: dev_api_secret
+      NATS_WS_TARGET: ws://nats:9222
+      DBOS__VMID: ${DBOS__VMID:-site-1}
+      DBOS__APPVERSION: ${DBOS__APPVERSION:-onprem-v1}
+      CLOUD_URL: ${CLOUD_URL:-http://host.docker.internal:3600}
+      CLOUD_API_KEY: ${CLOUD_API_KEY:-}
+      CLOUD_BOT_ID: ${CLOUD_BOT_ID:-}
+      CLOUD_ADMIN_USER: ${CLOUD_ADMIN_USER:-superadmin}
+      CLOUD_ADMIN_PASSWORD: ${CLOUD_ADMIN_PASSWORD:-l0ngt@1l}
+      INTAKE_POLL_MS: ${INTAKE_POLL_MS:-3000}
+      REPORT_RETRY_BASE_SECONDS: ${REPORT_RETRY_BASE_SECONDS:-2}
+      REPORT_RETRY_CAP_SECONDS: ${REPORT_RETRY_CAP_SECONDS:-10}
+      WORK_DIR: /work
+      ASSET_PORT: 3001
+      ASSET_BASE_URL: http://app:3001
+      LINE_FILE: lines/site-line.json
+      PRINT_TIMEOUT: ${PRINT_TIMEOUT:-10m}
+      MACHINE_TRANSPORT: mqtt
+      MACHINE_MQTT_URL: mqtt://mosquitto:1883
+      LT_BASE_URL: http://localhost:3000
+    env_file:
+      - path: .env
+        required: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./src:/app/src
+      - ./lines:/app/lines
+      - workdir:/work
+    depends_on:
+      postgres: { condition: service_healthy }
+      nats: { condition: service_healthy }
+      mosquitto: { condition: service_healthy }
+
+  printer:
+    build: { context: ., target: dev }
+    command: ["npx", "tsx", "mock/main.ts"]
+    environment:
+      LINE_FILE: lines/site-line.json
+      MACHINE_ID: printer-01
+      MACHINE_MQTT_URL: mqtt://mosquitto:1883
+      PRINT_SECONDS: ${PRINT_SECONDS:-5}
+    volumes:
+      - ./src:/app/src
+      - ./mock:/app/mock
+      - ./lines:/app/lines
+    depends_on:
+      mosquitto: { condition: service_healthy }
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "${POSTGRES_HOST_PORT:-5437}:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: longtail
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  nats:
+    image: nats:2-alpine
+    command: ["-c", "/etc/nats/nats.conf", "--auth", "dev_api_secret"]
+    ports:
+      - "${NATS_HOST_PORT:-4822}:4222"
+    volumes:
+      - ./docker/nats.conf:/etc/nats/nats.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.20
+    ports:
+      - "${MQTT_HOST_PORT:-1893}:1883"
+    volumes:
+      - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
+  workdir:
