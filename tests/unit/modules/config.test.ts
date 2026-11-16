@@ -43,7 +43,7 @@ describe('loadConfig defaults', () => {
   it('defaults the cloud timeouts and retry policy', () => {
     expect(config.cloud).toEqual({
       url: 'http://cloud.invalid',
-      access: { apiKey: 'lt_bot_test', botId: 'bot-test' },
+      credentials: { apiKey: 'lt_bot_test', botId: 'bot-test' },
       timeoutMs: 15_000,
       downloadTimeoutMs: 600_000,
       retry: { retries: 2, baseDelayMs: 500, maxDelayMs: 5_000 },
@@ -100,24 +100,9 @@ describe('loadConfig validation', () => {
     expect(() => loadConfig({ CLOUD_API_KEY: 'lt_bot_test', CLOUD_BOT_ID: 'bot-test' })).toThrow('CLOUD_URL is required');
   });
 
-  it('throws when the bot key comes without its bot id, and the reverse', () => {
-    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_API_KEY: 'lt_bot_test' })).toThrow('CLOUD_API_KEY and CLOUD_BOT_ID are set together');
-    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_BOT_ID: 'bot-test' })).toThrow('CLOUD_API_KEY and CLOUD_BOT_ID are set together');
-  });
-
-  it('does not let an admin login stand in for half a key pair', () => {
-    const env = { CLOUD_URL: 'http://cloud.invalid', CLOUD_API_KEY: 'lt_bot_test', CLOUD_ADMIN_USER: 'admin', CLOUD_ADMIN_PASSWORD: 'pw' };
-    expect(() => loadConfig(env)).toThrow('set together');
-  });
-
-  it('accepts an admin login when no key pair is set', () => {
-    const config = loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_ADMIN_USER: 'admin', CLOUD_ADMIN_PASSWORD: 'pw' });
-    expect(config.cloud.access).toEqual({ admin: { username: 'admin', password: 'pw' } });
-  });
-
-  it('throws when no sign-in is configured, or the admin login is half set', () => {
-    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid' })).toThrow('Cloud sign-in is not configured');
-    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_ADMIN_USER: 'admin' })).toThrow('Cloud sign-in is not configured');
+  it('throws without the bot key or its bot id', () => {
+    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_BOT_ID: 'bot-test' })).toThrow('CLOUD_API_KEY is required');
+    expect(() => loadConfig({ CLOUD_URL: 'http://cloud.invalid', CLOUD_API_KEY: 'lt_bot_test' })).toThrow('CLOUD_BOT_ID is required');
   });
 
   it.each([

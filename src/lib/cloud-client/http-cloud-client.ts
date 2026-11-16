@@ -5,8 +5,7 @@ import type { ClaimQuery, CloudClient, CloudCredentials, CloudEscalation, CloudF
 
 export interface HttpCloudClientOptions {
   url: string;
-  /** Resolved on each call, so a site that boots offline signs in once the cloud answers. */
-  credentials: () => Promise<CloudCredentials>;
+  credentials: CloudCredentials;
   retry: RetryPolicy;
   timeoutMs: number;
   sleep?: (ms: number) => Promise<void>;
@@ -18,12 +17,13 @@ const PAGE = 100;
 export class HttpCloudClient implements CloudClient {
   constructor(private readonly options: HttpCloudClientOptions) {
     if (!options.url) throw new Error('HttpCloudClient needs the cloud url (CLOUD_URL)');
+    if (!options.credentials?.apiKey || !options.credentials.botId) throw new Error('HttpCloudClient needs the site bot key and id (CLOUD_API_KEY, CLOUD_BOT_ID)');
     if (options.timeoutMs <= 0) throw new Error(`HttpCloudClient timeoutMs must be greater than 0, got ${options.timeoutMs}`);
     if (options.retry.retries < 0) throw new Error(`HttpCloudClient retries must be 0 or more, got ${options.retry.retries}`);
   }
 
   async botId(): Promise<string> {
-    return (await this.options.credentials()).botId;
+    return this.options.credentials.botId;
   }
 
   async claim(query: ClaimQuery): Promise<CloudEscalation[]> {
@@ -61,7 +61,6 @@ export class HttpCloudClient implements CloudClient {
 
   private async call<T>(request: Omit<ApiRequest, 'token' | 'timeoutMs'>): Promise<T> {
     const { url, credentials, retry, timeoutMs, sleep } = this.options;
-    const { apiKey } = await credentials();
-    return executeWithRetry(() => requestApi<T>(url, { ...request, token: apiKey, timeoutMs }), retry, sleep);
+    return executeWithRetry(() => requestApi<T>(url, { ...request, token: credentials.apiKey, timeoutMs }), retry, sleep);
   }
 }

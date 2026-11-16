@@ -24,14 +24,10 @@ function envPositive(env: Env, name: string, fallback: number): number {
   return value;
 }
 
-/** How the site signs in to the cloud: a bot key issued ahead of time, or an admin login that issues one. */
-export type CloudAccess =
-  | { apiKey: string; botId: string }
-  | { admin: { username: string; password: string } };
-
 export interface CloudConfig {
   url: string;
-  access: CloudAccess;
+  /** The site's bot on the cloud: its key and its id. */
+  credentials: { apiKey: string; botId: string };
   timeoutMs: number;
   /** Longest one file may take to arrive. */
   downloadTimeoutMs: number;
@@ -88,7 +84,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
     },
     cloud: {
       url: envRequired(env, 'CLOUD_URL').replace(/\/+$/, ''),
-      access: cloudAccess(env),
+      credentials: { apiKey: envRequired(env, 'CLOUD_API_KEY'), botId: envRequired(env, 'CLOUD_BOT_ID') },
       timeoutMs: envPositive(env, 'CLOUD_TIMEOUT_MS', 15_000),
       downloadTimeoutMs: envPositive(env, 'CLOUD_DOWNLOAD_TIMEOUT_MS', 600_000),
       retry: {
@@ -115,16 +111,6 @@ export function loadConfig(env: Env = process.env): AppConfig {
     },
     report,
   };
-}
-
-function cloudAccess(env: Env): CloudAccess {
-  const { CLOUD_API_KEY: apiKey, CLOUD_BOT_ID: botId, CLOUD_ADMIN_USER: username, CLOUD_ADMIN_PASSWORD: password } = env;
-  if (apiKey || botId) {
-    if (!apiKey || !botId) throw new Error('CLOUD_API_KEY and CLOUD_BOT_ID are set together: the key and the id of the bot it belongs to');
-    return { apiKey, botId };
-  }
-  if (username && password) return { admin: { username, password } };
-  throw new Error('Cloud sign-in is not configured: set CLOUD_API_KEY and CLOUD_BOT_ID, or CLOUD_ADMIN_USER and CLOUD_ADMIN_PASSWORD for a local demo');
 }
 
 /** DBOS keeps its system tables in the same Postgres database as Long Tail unless DBOS_SYSTEM_DATABASE_URL names another. */
