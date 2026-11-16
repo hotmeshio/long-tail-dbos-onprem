@@ -9,3 +9,4 @@ CLAUDE.md
 .mcp.json
 cdk.out
 work
+deploy/cdk/cdk.context.json

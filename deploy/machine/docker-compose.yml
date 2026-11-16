@@ -1,0 +1,66 @@
+# The services beside the app on the site machine. They start at boot from
+# files on disk, with or without internet. The app itself runs as the ECS
+# service and reaches these on 127.0.0.1.
+name: site-services
+
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run sync-secrets.sh}
+      POSTGRES_DB: longtail
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ${SITE_DATA_DIR:?}/postgres:/var/lib/postgresql/data
+
+  nats:
+    image: nats:2-alpine
+    restart: always
+    command: ["-c", "/etc/nats/nats.conf", "--auth", "${NATS_TOKEN:?run sync-secrets.sh}"]
+    ports:
+      - "127.0.0.1:4222:4222"
+      - "127.0.0.1:9222:9222"
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.20
+    restart: always
+    ports:
+      # MQTT_BIND=0.0.0.0 in site.env opens the broker to machines on the LAN.
+      - "${MQTT_BIND:-127.0.0.1}:1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # A stand-in printer from the site image, for a site with no real machine.
+  printer:
+    profiles: [mock]
+    image: ${SITE_IMAGE:-site-image-unset}
+    restart: always
+    network_mode: host
+    command: ["node", "build/mock/main.js"]
+    environment:
+      LINE_FILE: lines/site-line.json
+      MACHINE_ID: printer-01
+      MACHINE_MQTT_URL: mqtt://127.0.0.1:1883
+      PRINT_SECONDS: ${PRINT_SECONDS:-5}
+    depends_on:
+      mosquitto: { condition: service_healthy }

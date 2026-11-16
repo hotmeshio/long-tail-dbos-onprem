@@ -1,0 +1,35 @@
+{
+  "name": "long-tail-dbos-onprem",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Long Tail on DBOS for a factory site: pulls fabrication work from a cloud Long Tail, builds it offline, reports back",
+  "license": "MIT",
+  "main": "build/src/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node build/src/index.js",
+    "printer": "tsx mock/main.ts",
+    "test": "vitest run",
+    "test:integration": "vitest run --config tests/integration/vitest.config.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dbos-inc/dbos-sdk": "^5.5.0",
+    "@hotmeshio/long-tail": "^0.37.1",
+    "@hotmeshio/long-tail-dbos": "^0.5.1",
+    "dotenv": "^16.4.7",
+    "mqtt": "^5.16.1",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
