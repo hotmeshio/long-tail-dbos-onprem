@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@dbos-inc/dbos-sdk": "^5.5.0",
-    "@hotmeshio/long-tail": "^0.37.1",
-    "@hotmeshio/long-tail-dbos": "^0.5.1",
+    "@hotmeshio/long-tail": "^0.38.0",
+    "@hotmeshio/long-tail-dbos": "^0.5.2",
     "dotenv": "^16.4.7",
     "mqtt": "^5.16.1",
     "pg": "^8.13.0"

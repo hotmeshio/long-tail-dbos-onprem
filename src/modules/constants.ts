@@ -7,7 +7,7 @@ export const ROLE = {
   LEAD: 'floor-lead',
 } as const;
 
-export const ROLE_TYPE = { MEMBER: 'member', SUPERADMIN: 'superadmin' } as const;
+export const ROLE_TYPE = { SUPERADMIN: 'superadmin' } as const;
 
 export const ESCALATION_TYPE = {
   INSPECTION: 'inspection',
@@ -28,8 +28,6 @@ export const ASSET = { MODEL: 'model', TICKET: 'ticket' } as const;
 export const BOT = {
   /** Opens the waits the site's workflows park on. */
   WORKFLOWS: 'dbos-workflows',
-  /** Prefix of the account this site holds on the cloud; the site id follows. */
-  SITE_PREFIX: 'fabrication',
 } as const;
 
 export const WORKFLOW = { FABRICATE: 'fabricate' } as const;

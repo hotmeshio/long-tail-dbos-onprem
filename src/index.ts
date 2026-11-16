@@ -12,7 +12,6 @@ import { log } from './lib/logger';
 import { dbosSystemDatabaseUrl, loadConfig } from './modules/config';
 import { LOG_EVENTS } from './modules/constants';
 import { startAssetServer } from './services/asset-server';
-import { cloudCredentials } from './services/cloud-credentials';
 import { dbosRuns, startIntake } from './services/intake';
 import { fabricateWorkflow } from './workflows';
 
@@ -48,7 +47,7 @@ async function main(): Promise<void> {
   // 4. The cloud this site takes work from
   const cloud = new HttpCloudClient({
     url: config.cloud.url,
-    credentials: cloudCredentials(config.cloud, { siteId: line.siteId, role: config.intake.role }),
+    credentials: config.cloud.credentials,
     retry: config.cloud.retry,
     timeoutMs: config.cloud.timeoutMs,
   });

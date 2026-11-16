@@ -13,13 +13,12 @@ const LIST = '/api/escalations';
 
 function makeClient(overrides: Partial<ConstructorParameters<typeof HttpCloudClient>[0]> = {}) {
   const sleep = vi.fn(async (_ms: number) => undefined);
-  const credentials = vi.fn(async () => CREDENTIALS);
   const client = new HttpCloudClient({
-    url: URL_BASE, credentials, timeoutMs: 1000, sleep,
+    url: URL_BASE, credentials: CREDENTIALS, timeoutMs: 1000, sleep,
     retry: { retries: 2, baseDelayMs: 10, maxDelayMs: 50 },
     ...overrides,
   });
-  return { client, sleep, credentials };
+  return { client, sleep };
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -27,6 +26,10 @@ afterEach(() => vi.unstubAllGlobals());
 describe('HttpCloudClient constructor', () => {
   it('throws without a url, naming the env var', () => {
     expect(() => makeClient({ url: '' })).toThrow('CLOUD_URL');
+  });
+
+  it.each([{ apiKey: '', botId: 'bot-test' }, { apiKey: 'lt_bot_test', botId: '' }])('throws without the bot key or its id', (credentials) => {
+    expect(() => makeClient({ credentials })).toThrow('CLOUD_API_KEY, CLOUD_BOT_ID');
   });
 
   it.each([0, -1])('throws for a timeout of %s', (timeoutMs) => {
@@ -128,12 +131,5 @@ describe('HttpCloudClient', () => {
     await expect(client.resolve('fabricate-order-1001', {})).rejects.toMatchObject({ status: 409, body: { error: 'already resolved' } });
     expect(calls).toHaveLength(1);
     expect(sleep).not.toHaveBeenCalled();
-  });
-
-  it('passes a credentials failure to the caller without a request', async () => {
-    const { mock } = stubFetch({});
-    const { client } = makeClient({ credentials: async () => { throw new Error('sign-in failed'); } });
-    await expect(client.read('esc-1')).rejects.toThrow('sign-in failed');
-    expect(mock).not.toHaveBeenCalled();
   });
 });

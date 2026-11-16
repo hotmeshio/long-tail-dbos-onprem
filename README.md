@@ -27,7 +27,13 @@ The cloud half lives in [long-tail-temporal-cloud](https://github.com/hotmeshio/
 
 ## Run it locally
 
-Start the cloud stack first (`docker compose up -d --build` in `long-tail-temporal-cloud`), then:
+Start the cloud stack (`docker compose up -d --build` in `long-tail-temporal-cloud`) and issue this site its key there:
+
+```bash
+npm run site-key
+```
+
+Copy `.env.example` to `.env`, set `CLOUD_API_KEY` and `CLOUD_BOT_ID` from that output, then start the site:
 
 ```bash
 docker compose up -d --build
@@ -41,13 +47,13 @@ docker compose up -d --build
 | NATS | localhost:4822 |
 | MQTT | localhost:1893 |
 
-The compose file includes a mock printer that speaks the machine contract over MQTT and finishes a job in `PRINT_SECONDS`. With the default settings the site signs in to the cloud at `http://host.docker.internal:3600` as its admin and issues its own bot key.
+The compose file includes a mock printer that speaks the machine contract over MQTT and finishes a job in `PRINT_SECONDS`. The site reaches the cloud at `http://host.docker.internal:3600` and calls it as its bot, with the key from `.env`.
 
 Start an order on the cloud (dashboard at http://localhost:3600, Invoke, `fabricationOrderRequest`). Within a few seconds the site claims it, the mock printer runs, and an inspection task appears at http://localhost:3700. Resolve it and the cloud workflow completes with `status: fabricated`.
 
 ## Connect to a deployed cloud
 
-On the cloud repo, `npm run site-key` prints the three values this site needs:
+Run `npm run site-key` against the deployed cloud and give the site the three values it prints:
 
 ```bash
 CLOUD_URL=https://cloud.example.com
@@ -55,7 +61,7 @@ CLOUD_API_KEY=lt_bot_...
 CLOUD_BOT_ID=...
 ```
 
-With `CLOUD_API_KEY` set, the site calls the cloud with that key and holds no admin credentials.
+Each call to the cloud carries the key, and the cloud validates it with one indexed read.
 
 ## Deploy
 
