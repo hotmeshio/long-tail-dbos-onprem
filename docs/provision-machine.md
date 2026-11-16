@@ -1,6 +1,6 @@
 # Provision the site machine
 
-The site machine is an Ubuntu 24.04 host with Docker. It runs Postgres, NATS and Mosquitto as services that start at boot, and the app as the ECS Anywhere service that a version tag deploys. This guide takes a fresh Ubuntu host to a running site in five steps. The scripts are in `deploy/machine`.
+The site machine is an Ubuntu 24.04 host with Docker. It runs Postgres, NATS and Mosquitto as services that start at boot, and the app as the ECS Anywhere service that a version tag deploys. This guide takes a fresh Ubuntu host to a running site in six steps. The scripts are in `deploy/machine`.
 
 Before you start, complete the first deploy in [deploy/README.md](../deploy/README.md): the stacks exist, the cloud key is stored, and the service is at zero tasks.
 
@@ -104,6 +104,31 @@ multipass exec site-1 -- sudo /opt/onpremsite/enable-mock-printer.sh
 ```
 
 It answers as `printer-01` on the local broker and completes each print in `PRINT_SECONDS` (default 5, set in `site.env`).
+
+## 6. Remote access and MCP sign-in
+
+[Tailscale](https://tailscale.com) gives the machine a private HTTPS name that every device on your tailnet reaches, on the LAN or away from it. In the Tailscale admin console, turn on MagicDNS and HTTPS certificates, then join the machine:
+
+```bash
+multipass exec site-1 -- sudo /opt/onpremsite/join-tailnet.sh site-1
+```
+
+The script prints a sign-in link on its first run. Open it, choose your tailnet and approve the machine. It then serves the dashboard at `https://site-1.<tailnet>.ts.net` and prints that address. The name is reachable from tailnet devices only.
+
+Set that address as the sign-in address for MCP clients and deploy:
+
+```bash
+gh variable set SITE_OAUTH_ISSUER --body https://site-1.<tailnet>.ts.net
+git tag v0.1.1 && git push origin v0.1.1
+```
+
+MCP clients connect at `https://site-1.<tailnet>.ts.net/mcp` and sign in through the dashboard's sign-in page. In Claude Code:
+
+```bash
+claude mcp add --transport http site https://site-1.<tailnet>.ts.net/mcp
+```
+
+Then `/mcp`, choose the server, and authenticate.
 
 ## Day to day
 

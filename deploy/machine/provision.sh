@@ -40,7 +40,7 @@ install -d -m 0755 "$INSTALL_DIR" "$SITE_DATA_DIR" "${SITE_DATA_DIR}/work"
 install -d -m 0700 "$CONFIG_DIR" "${SITE_DATA_DIR}/postgres"
 install -m 0644 "${SOURCE_DIR}/docker-compose.yml" "${SOURCE_DIR}/nats.conf" "${SOURCE_DIR}/mosquitto.conf" "${SOURCE_DIR}/machine-paths.sh" "$INSTALL_DIR/"
 install -m 0755 "${SOURCE_DIR}/provision.sh" "${SOURCE_DIR}/register.sh" "${SOURCE_DIR}/sync-secrets.sh" \
-  "${SOURCE_DIR}/compose-services.sh" "${SOURCE_DIR}/enable-mock-printer.sh" "$INSTALL_DIR/"
+  "${SOURCE_DIR}/compose-services.sh" "${SOURCE_DIR}/enable-mock-printer.sh" "${SOURCE_DIR}/join-tailnet.sh" "$INSTALL_DIR/"
 
 set_site_value PROJECT_NAME "$PROJECT_NAME"
 set_site_value SITE_SLUG "$SITE_SLUG"
