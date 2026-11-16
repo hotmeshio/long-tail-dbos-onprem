@@ -91,6 +91,7 @@ export class SiteStack extends cdk.Stack {
         LINE_FILE,
         MACHINE_TRANSPORT: 'mqtt',
         MACHINE_MQTT_URL: config.mqttUrl,
+        ...(config.oauthIssuer ? { LT_OAUTH_ISSUER: config.oauthIssuer } : {}),
       },
       secrets: {
         JWT_SECRET: ecs.Secret.fromSecretsManager(props.jwtSecret),

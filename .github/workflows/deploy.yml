@@ -16,6 +16,7 @@ env:
   CLOUD_URL: ${{ vars.CLOUD_URL }}
   SITE_DESIRED_COUNT: ${{ vars.SITE_DESIRED_COUNT }}
   SITE_ASSET_BASE_URL: ${{ vars.SITE_ASSET_BASE_URL }}
+  SITE_OAUTH_ISSUER: ${{ vars.SITE_OAUTH_ISSUER }}
   SITE_ALARM_EMAIL: ${{ vars.SITE_ALARM_EMAIL }}
   SITE_IMAGE_TAG: ${{ github.ref_name }}
 

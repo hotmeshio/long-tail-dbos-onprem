@@ -110,4 +110,12 @@ describe('SiteStack', () => {
     expect(JSON.stringify(app.Image)).toContain(':v1.2.3');
     expect(app.Environment).toContainEqual({ Name: 'ASSET_BASE_URL', Value: 'http://192.168.1.50:3001' });
   });
+
+  it('turns on MCP sign-in when an issuer is set', () => {
+    const { site } = defineStacks(createApp({ oauthIssuer: 'http://192.168.1.50:3000' }), TEST_ENV);
+    const [definition] = Object.values(templateOf(site).findResources('AWS::ECS::TaskDefinition'));
+    const [app] = definition.Properties.ContainerDefinitions;
+    expect(app.Environment).toContainEqual({ Name: 'LT_OAUTH_ISSUER', Value: 'http://192.168.1.50:3000' });
+    expect(environment).not.toHaveProperty('LT_OAUTH_ISSUER');
+  });
 });

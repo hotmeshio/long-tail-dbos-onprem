@@ -1,7 +1,7 @@
 import { loadConfig } from '../lib/config';
 import { createApp, TEST_CLOUD_URL } from './synth';
 
-const ENV_NAMES = ['CLOUD_URL', 'SITE_IMAGE_TAG', 'SITE_DESIRED_COUNT', 'SITE_ASSET_BASE_URL', 'SITE_ALARM_EMAIL'];
+const ENV_NAMES = ['CLOUD_URL', 'SITE_IMAGE_TAG', 'SITE_DESIRED_COUNT', 'SITE_ASSET_BASE_URL', 'SITE_OAUTH_ISSUER', 'SITE_ALARM_EMAIL'];
 
 describe('loadConfig', () => {
   beforeEach(() => {
@@ -34,6 +34,13 @@ describe('loadConfig', () => {
     expect(config.desiredCount).toBe(0);
     expect(config.imageTag).toBe('latest');
     expect(config.alarmEmail).toBeUndefined();
+    expect(config.oauthIssuer).toBeUndefined();
+  });
+
+  it('takes the MCP sign-in address from context or the environment', () => {
+    expect(loadConfig(createApp({ oauthIssuer: 'http://192.168.1.50:3000/' })).oauthIssuer).toBe('http://192.168.1.50:3000');
+    vi.stubEnv('SITE_OAUTH_ISSUER', 'https://floor.example.com');
+    expect(loadConfig(createApp()).oauthIssuer).toBe('https://floor.example.com');
   });
 
   it('takes a project name override', () => {

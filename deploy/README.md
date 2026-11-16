@@ -45,6 +45,7 @@ Each setting is CDK context (`-c name=value`); some also read an environment var
 | `desiredCount` | `SITE_DESIRED_COUNT` | `0` | `1` once the machine is registered and an image is pushed |
 | `imageTag` | `SITE_IMAGE_TAG` | `latest` | Image tag the service runs |
 | `assetBaseUrl` | `SITE_ASSET_BASE_URL` | `http://127.0.0.1:3001` | Where machines on the LAN fetch order files: the machine's LAN address |
+| `oauthIssuer` | `SITE_OAUTH_ISSUER` | none | Turns on OAuth sign-in for MCP clients at `/mcp`: the address the dashboard is reached at |
 | `alarmEmail` | `SITE_ALARM_EMAIL` | none | Receives the silence alarm |
 | `silenceHours` | | `3` | Hours with no log line before the alarm fires |
 | `logRetentionDays` | | `30` | CloudWatch retention |
@@ -119,6 +120,7 @@ Set these repository variables:
 | `CLOUD_URL` | the cloud address |
 | `SITE_DESIRED_COUNT` | `0` until the machine is registered, then `1` |
 | `SITE_ASSET_BASE_URL` | the machine's LAN address with the asset port, e.g. `http://192.168.1.50:3001` |
+| `SITE_OAUTH_ISSUER` | optional; the dashboard address, e.g. `http://192.168.1.50:3000`, for MCP sign-in |
 | `SITE_ALARM_EMAIL` | optional |
 
 Pushing a tag such as `v0.1.0` runs `.github/workflows/deploy.yml`: tests, one image built for `linux/arm64` and `linux/amd64` and pushed as `:v0.1.0` and `:latest`, then `cdk deploy --all` with that tag. ECS stops the running task and starts the new image on the machine; a release that fails to start rolls back to the previous one.

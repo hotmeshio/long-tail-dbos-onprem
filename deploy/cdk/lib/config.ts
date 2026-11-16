@@ -46,6 +46,9 @@ export function loadConfig(app: cdk.App) {
   /** Where machines on the LAN fetch order files: the machine's LAN address. */
   const assetBaseUrl: string = app.node.tryGetContext('assetBaseUrl') || process.env.SITE_ASSET_BASE_URL || `http://${HOST}:${ASSET_PORT}`;
 
+  /** Turns on OAuth sign-in for MCP clients at /mcp: the address the dashboard is reached at. */
+  const oauthIssuer: string | undefined = app.node.tryGetContext('oauthIssuer') || process.env.SITE_OAUTH_ISSUER || undefined;
+
   /** Directory on the machine that holds the files of claimed orders. */
   const workHostPath: string = app.node.tryGetContext('workHostPath') || `/var/lib/${projectSlug}/work`;
 
@@ -80,6 +83,7 @@ export function loadConfig(app: cdk.App) {
     siteId,
     dbosAppVersion,
     assetBaseUrl: assetBaseUrl.replace(/\/+$/, ''),
+    oauthIssuer: oauthIssuer?.replace(/\/+$/, ''),
     workHostPath,
     adminUser,
     dbName,
