@@ -61,7 +61,7 @@ With `CLOUD_API_KEY` set, the site calls the cloud with that key and holds no ad
 
 The site runs on a machine on the factory LAN, registered with AWS through ECS Anywhere. Postgres, NATS and Mosquitto run as services on the machine and start with or without internet; the app runs as an ECS service, so a version tag pushed to GitHub builds the image and updates the machine. Backups go to S3, logs to CloudWatch, and an alarm fires when the machine has been silent for three hours.
 
-[deploy/README.md](deploy/README.md) covers the stacks, the secrets, the first deploy and machine registration.
+[deploy/README.md](deploy/README.md) covers the stacks, the secrets and the first deploy. [docs/provision-machine.md](docs/provision-machine.md) takes a fresh Ubuntu host, or a Linux VM on a Mac, to a running site.
 
 ## Layout
 
@@ -78,6 +78,7 @@ src/
 lines/site-line.json        the line and its machines
 mock/                       mock printer
 deploy/cdk/                 AWS side of the site: registry, cluster, role, secrets, backups, logs
+deploy/machine/             Site machine: provisioning, registration, the services beside the app
 ```
 
 ## Tests

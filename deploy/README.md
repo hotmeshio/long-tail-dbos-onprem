@@ -74,7 +74,7 @@ aws secretsmanager put-secret-value --secret-id OnPremSite/CloudBot \
   --secret-string "$(jq -n --arg apiKey "$CLOUD_API_KEY" --arg botId "$CLOUD_BOT_ID" '{apiKey: $apiKey, botId: $botId}')"
 ```
 
-Register the machine (Ubuntu, with Docker and the services above running). Create an activation on your workstation:
+Provision and register the machine with the scripts in `deploy/machine`; [docs/provision-machine.md](../docs/provision-machine.md) walks through it, including a Linux VM on a Mac. In short, on your workstation:
 
 ```bash
 aws ssm create-activation --iam-role OnPremSite-InstanceRole \
@@ -84,9 +84,8 @@ aws ssm create-activation --iam-role OnPremSite-InstanceRole \
 Then on the machine, with the id and code that command returned:
 
 ```bash
-curl --proto https -o ecs-anywhere-install.sh https://amazon-ecs-agent.s3.amazonaws.com/ecs-anywhere-install-latest.sh
-sudo bash ecs-anywhere-install.sh --region us-west-2 --cluster onpremsite \
-  --activation-id <id> --activation-code <code>
+sudo AWS_REGION=us-west-2 bash machine/provision.sh
+sudo /opt/onpremsite/register.sh <id> <code>
 ```
 
 Push the first image by pushing a version tag (next section), then start the app:
