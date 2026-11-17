@@ -1,8 +1,8 @@
 {
   "name": "long-tail-dbos-onprem",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Long Tail on DBOS for a factory site: pulls fabrication work from a cloud Long Tail, builds it offline, reports back",
+  "description": "Long Tail on DBOS for the Acme Eyeglass site: claims production orders from a cloud Long Tail, makes the glasses on the local network, reports back",
   "license": "MIT",
   "main": "build/src/index.js",
   "engines": {
@@ -13,6 +13,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node build/src/index.js",
     "printer": "tsx mock/main.ts",
+    "seed:story": "tsx scripts/seed-story.ts",
     "test": "vitest run",
     "test:integration": "vitest run --config tests/integration/vitest.config.mts",
     "typecheck": "tsc --noEmit"

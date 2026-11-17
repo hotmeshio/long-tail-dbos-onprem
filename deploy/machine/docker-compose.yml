@@ -50,7 +50,7 @@ services:
       timeout: 3s
       retries: 20
 
-  # A stand-in printer from the site image, for a site with no real machine.
+  # A stand-in printer and lens line from the site image, for a site with no real machines.
   printer:
     profiles: [mock]
     image: ${SITE_IMAGE:-site-image-unset}
@@ -58,9 +58,10 @@ services:
     network_mode: host
     command: ["node", "build/mock/main.js"]
     environment:
-      LINE_FILE: lines/site-line.json
-      MACHINE_ID: printer-01
+      LINE_FILE: lines/print-line.json
+      LENS_LINE_FILE: lines/lens-line.json
       MACHINE_MQTT_URL: mqtt://127.0.0.1:1883
       PRINT_SECONDS: ${PRINT_SECONDS:-5}
+      STATION_SECONDS: ${STATION_SECONDS:-3}
     depends_on:
       mosquitto: { condition: service_healthy }

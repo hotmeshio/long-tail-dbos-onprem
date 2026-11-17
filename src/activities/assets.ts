@@ -2,7 +2,7 @@ import { rm } from 'node:fs/promises';
 
 import { assetPath, hashFile, orderDir } from '../lib/work-dir';
 import { loadConfig } from '../modules/config';
-import type { StagedAsset } from '../types/fabrication';
+import type { StagedAsset } from '../types/production';
 
 export interface AssetCheck {
   verified: boolean;

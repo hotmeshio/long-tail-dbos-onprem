@@ -4,28 +4,28 @@ import { resolve } from 'node:path';
 import { Machines } from '@hotmeshio/long-tail';
 
 import { MockPrinter, type PrinterSettings } from '../../mock/printer';
-import { MODEL_BYTES, sha256Of } from './order-fixtures';
+import { FRAME_BYTES, sha256Of } from './order-fixtures';
 import { stubFetch } from './fetch-stub';
 
 export const TOPIC_ROOT = 'line/v1';
-export const ARTIFACT_URL = 'http://assets.invalid/esc-1/model.stl';
-const LINE_FILE = resolve(__dirname, '../../lines/site-line.json');
+export const ARTIFACT_URL = 'http://assets.invalid/esc-1/round-48.gcode.3mf';
+const LINE_FILE = resolve(__dirname, '../../lines/print-line.json');
 const OBSERVER = 'test-observer';
 
 export interface Heard { channel: string; body: Record<string, any>; source: Record<string, any> }
 
-/** Serve the model at ARTIFACT_URL. */
-export const stubArtifact = (content: string = MODEL_BYTES) =>
-  stubFetch({ 'GET /esc-1/model.stl': { text: content, contentType: 'model/stl' } });
+/** Serve the frame file at ARTIFACT_URL. */
+export const stubArtifact = (content: string = FRAME_BYTES) =>
+  stubFetch({ 'GET /esc-1/round-48.gcode.3mf': { text: content, contentType: 'application/octet-stream' } });
 
 /** The args of a dispatch for one order of two units. */
 export function dispatchArgs(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    jobId: 'order-1001-print',
-    orderRef: 'order-1001',
-    recipe: { id: 'RCP-PRINT', version: '1' },
-    units: [{ unitId: 'order-1001-1', carrierId: null }, { unitId: 'order-1001-2', carrierId: null }],
-    artifact: { url: ARTIFACT_URL, sha256: sha256Of(MODEL_BYTES) },
+    jobId: 'A-1042-print',
+    orderRef: 'A-1042',
+    recipe: { id: 'print-file', version: '1' },
+    units: [{ unitId: 'A-1042-1', carrierId: null }, { unitId: 'A-1042-2', carrierId: null }],
+    artifact: { url: ARTIFACT_URL, sha256: sha256Of(FRAME_BYTES) },
     ...overrides,
   };
 }
@@ -35,7 +35,7 @@ export function makePrinterHarness(settings: Partial<PrinterSettings> = {}) {
   const broker = new Machines.MemoryBroker();
   const line = Machines.loadLine(LINE_FILE);
   const link = new Machines.MemoryMachineLink(broker);
-  const printer = new MockPrinter(line.machines[0], line, link, { topicRoot: TOPIC_ROOT, printMs: 4, heartbeats: false, ...settings });
+  const printer = new MockPrinter(line.machines[0], line, link, { topicRoot: TOPIC_ROOT, cycleMs: 4, heartbeats: false, ...settings });
   const topic = (channel: string) => Machines.machineTopic(TOPIC_ROOT, printer.ident, channel);
   const channels = new Map(Object.values(Machines.CHANNEL).map((channel) => [topic(channel), channel]));
   const read = (msg: { topic: string; payload: string }): Heard => {

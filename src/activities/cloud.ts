@@ -2,7 +2,7 @@ import { ApiRequestError } from '../lib/api-request';
 import { getCloud } from '../lib/cloud-client';
 import { log } from '../lib/logger';
 import { ESCALATION_STATUS, LOG_EVENTS, REPORT_STATE, type ReportState } from '../modules/constants';
-import type { FabricationOutcome } from '../types/fabrication';
+import type { ProductionOutcome } from '../types/production';
 
 export interface ReportResult {
   state: ReportState;
@@ -39,7 +39,7 @@ async function readSettled(escalationId: string): Promise<ReportResult> {
  * waiting), refused, or unreachable (try again later). A report the cloud
  * already holds from this site counts as resolved.
  */
-export async function reportOutcome(escalationId: string, signalKey: string, outcome: FabricationOutcome): Promise<ReportResult> {
+export async function reportOutcome(escalationId: string, signalKey: string, outcome: ProductionOutcome): Promise<ReportResult> {
   try {
     await getCloud().resolve(signalKey, outcome);
     return settle(escalationId, { state: REPORT_STATE.RESOLVED });

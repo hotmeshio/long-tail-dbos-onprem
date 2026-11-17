@@ -22,15 +22,15 @@ describe('assetPath', () => {
   });
 
   it('resolves a relative work directory', () => {
-    expect(assetPath('./work', 'esc-1', 'model.stl')).toBe(resolve('work', 'esc-1', 'model.stl'));
+    expect(assetPath('./work', 'esc-1', 'round-48.gcode.3mf')).toBe(resolve('work', 'esc-1', 'round-48.gcode.3mf'));
   });
 
-  it.each(['..', '../model.stl', 'sub/model.stl', '/etc/passwd', '', '.env'])('refuses "%s" as an asset name', (name) => {
+  it.each(['..', '../round-48.gcode.3mf', 'sub/round-48.gcode.3mf', '/etc/passwd', '', '.env'])('refuses "%s" as an asset name', (name) => {
     expect(() => assetPath('/srv/work', 'esc-1', name)).toThrow('asset name is not a file name');
   });
 
   it('refuses an escalation id that leaves the work directory', () => {
-    expect(() => assetPath('/srv/work', '..', 'model.stl')).toThrow('escalation id is not a file name');
+    expect(() => assetPath('/srv/work', '..', 'round-48.gcode.3mf')).toThrow('escalation id is not a file name');
   });
 });
 
@@ -40,7 +40,7 @@ describe('hashFile', () => {
   afterAll(() => work.remove());
 
   it('returns the sha256 and the size of a file', async () => {
-    const file = await work.writeAsset('esc-1', 'model.stl', 'solid part');
+    const file = await work.writeAsset('esc-1', 'round-48.gcode.3mf', 'solid part');
     expect(await hashFile(file.path)).toEqual({ sha256: sha256Of('solid part'), size: 10 });
   });
 

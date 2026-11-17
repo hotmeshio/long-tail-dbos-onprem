@@ -1,0 +1,24 @@
+{
+  "siteId": "site-1",
+  "lineId": "print-1",
+  "roles": { "exit": "print-unload", "operator": "print-servicing" },
+  "machines": [
+    {
+      "machineId": "p1s-01",
+      "address": "PRN-001",
+      "role": "printer-fleet",
+      "process": "print",
+      "description": "Bambu printer p1s-01",
+      "carrier": "none",
+      "cycleSec": 5,
+      "changeoverSec": 0,
+      "rejectReason": "PRINT-FAILED",
+      "recipes": { "print-file": ["1"] },
+      "materials": [],
+      "measurements": [],
+      "faults": {},
+      "queueDepth": 1,
+      "requireArtifact": true
+    }
+  ]
+}

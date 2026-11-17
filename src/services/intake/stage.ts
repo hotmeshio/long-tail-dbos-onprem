@@ -1,6 +1,6 @@
 import { downloadFile, type CloudClient } from '../../lib/cloud-client';
 import { assetPath, hashFile } from '../../lib/work-dir';
-import type { FabricationOrder, StagedAsset } from '../../types/fabrication';
+import type { ProductionOrder, StagedAsset } from '../../types/production';
 
 export interface StageOptions {
   workDir: string;
@@ -19,7 +19,7 @@ async function alreadyStaged(path: string, sha256: string): Promise<boolean> {
  * Bring an order's files to the site's disk and check each against the
  * checksum the order declares. A file already on disk and intact is kept.
  */
-export async function stageAssets(cloud: CloudClient, escalationId: string, order: FabricationOrder, options: StageOptions): Promise<StagedAsset[]> {
+export async function stageAssets(cloud: CloudClient, escalationId: string, order: ProductionOrder, options: StageOptions): Promise<StagedAsset[]> {
   // 1. Signed links for the row's files
   const files = await cloud.files(escalationId);
 

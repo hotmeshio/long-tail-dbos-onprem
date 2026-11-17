@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs a stand-in printer from the site image beside the services. Needs the
+# Runs a stand-in printer and lens line from the site image beside the services. Needs the
 # image in the repository and the machine online for the pull.
 set -euo pipefail
 

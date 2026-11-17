@@ -6,14 +6,14 @@ import { spyOnLog } from '../../helpers/log-spy';
 import { ARTIFACT_URL, dispatchArgs, makePrinterHarness, stubArtifact, type PrinterHarness } from '../../helpers/printer-harness';
 
 const { CHANNEL, JOB_EVENT, MODE, OP, REPLY_STATUS } = Machines;
-const JOB_ID = 'order-1001-print';
-const UNIT_IDS = ['order-1001-1', 'order-1001-2'];
+const JOB_ID = 'A-1042-print';
+const UNIT_IDS = ['A-1042-1', 'A-1042-2'];
 
 let rig: PrinterHarness;
 let logged: ReturnType<typeof spyOnLog>;
 
-async function startRig(printMs = 4): Promise<void> {
-  rig = makePrinterHarness({ printMs });
+async function startRig(cycleMs = 4): Promise<void> {
+  rig = makePrinterHarness({ cycleMs });
   await rig.printer.start();
 }
 
@@ -61,7 +61,7 @@ describe('MockPrinter dispatch', () => {
     await rig.settle();
     const events = rig.jobEvents();
     expect(events[0]).toEqual({
-      event: JOB_EVENT.QUEUED, jobId: JOB_ID, unitId: UNIT_IDS[0], orderRef: 'order-1001', recipe: { id: 'RCP-PRINT', version: '1' }, carrierId: null,
+      event: JOB_EVENT.QUEUED, jobId: JOB_ID, unitId: UNIT_IDS[0], orderRef: 'A-1042', recipe: { id: 'print-file', version: '1' }, carrierId: null,
     });
     expect(events.at(-1)).toMatchObject({ event: JOB_EVENT.ARRIVED, jobId: JOB_ID, unitId: UNIT_IDS[1], peer: 'loader-01' });
   });
@@ -123,7 +123,7 @@ describe('MockPrinter dispatch', () => {
     await rig.settle();
     const ends = rig.jobEvents().filter((body) => body.event === JOB_EVENT.STARTED || body.event === JOB_EVENT.ARRIVED);
     expect(ends.map((body) => `${body.event} ${body.unitId}`)).toEqual([
-      `${JOB_EVENT.STARTED} order-1001-1`, `${JOB_EVENT.STARTED} order-1001-2`, `${JOB_EVENT.ARRIVED} order-1001-1`, `${JOB_EVENT.ARRIVED} order-1001-2`,
+      `${JOB_EVENT.STARTED} A-1042-1`, `${JOB_EVENT.STARTED} A-1042-2`, `${JOB_EVENT.ARRIVED} A-1042-1`, `${JOB_EVENT.ARRIVED} A-1042-2`,
       `${JOB_EVENT.STARTED} order-1002-1`, `${JOB_EVENT.ARRIVED} order-1002-1`,
     ]);
     expect(rig.retained(CHANNEL.SNAPSHOT)!.cycles).toBe(3);

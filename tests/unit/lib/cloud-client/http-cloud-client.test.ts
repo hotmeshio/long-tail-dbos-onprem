@@ -83,7 +83,7 @@ describe('HttpCloudClient', () => {
   });
 
   it('reads the files of a row', async () => {
-    const files = [{ as: 'model', path: 'orders/1/model.stl', name: 'model.stl', url: 'http://files.invalid/model.stl?sig=1' }];
+    const files = [{ as: 'frame', path: 'orders/1/round-48.gcode.3mf', name: 'round-48.gcode.3mf', url: 'http://files.invalid/round-48.gcode.3mf?sig=1' }];
     const { calls } = stubFetch({ 'GET /api/escalations/esc%2F1/files': { body: { files } } });
     expect(await makeClient().client.files('esc/1')).toEqual(files);
     expect(calls).toEqual([{ method: 'GET', url: `${URL_BASE}/api/escalations/esc%2F1/files`, body: undefined, authorization: AUTH }]);
@@ -99,10 +99,10 @@ describe('HttpCloudClient', () => {
   it('resolves by signal key with the outcome as the resolver payload', async () => {
     const { calls } = stubFetch({ 'POST /api/escalations/resolve-by-signal-key': { body: { ok: true } } });
     const outcome = { completed: true, units: 2, site: 'site-1' };
-    await makeClient().client.resolve('fabricate-order-1001', outcome);
+    await makeClient().client.resolve('production-A-1042', outcome);
     expect(calls).toEqual([{
       method: 'POST', url: `${URL_BASE}/api/escalations/resolve-by-signal-key`, authorization: AUTH,
-      body: { signalKey: 'fabricate-order-1001', resolverPayload: outcome },
+      body: { signalKey: 'production-A-1042', resolverPayload: outcome },
     }]);
   });
 
@@ -128,7 +128,7 @@ describe('HttpCloudClient', () => {
   it('does not retry a conflict', async () => {
     const { calls } = stubFetch({ 'POST /api/escalations/resolve-by-signal-key': { status: 409, body: { error: 'already resolved' } } });
     const { client, sleep } = makeClient();
-    await expect(client.resolve('fabricate-order-1001', {})).rejects.toMatchObject({ status: 409, body: { error: 'already resolved' } });
+    await expect(client.resolve('production-A-1042', {})).rejects.toMatchObject({ status: 409, body: { error: 'already resolved' } });
     expect(calls).toHaveLength(1);
     expect(sleep).not.toHaveBeenCalled();
   });
