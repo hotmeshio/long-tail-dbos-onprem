@@ -11,14 +11,18 @@ vi.mock('@hotmeshio/long-tail', () => ({
   createClient: longTail.createClient,
 }));
 
-import { workflowConnection } from '../../../src/config/workflow-bot';
 import { BOT, ROLE_TYPE } from '../../../src/modules/constants';
 
 const BOT_ROLE = { role: ROLE_TYPE.SUPERADMIN, type: ROLE_TYPE.SUPERADMIN };
 const existing = { id: 'bot-7', external_id: BOT.WORKFLOWS };
 
-beforeEach(() => {
+let workflowConnection: typeof import('../../../src/config/workflow-bot').workflowConnection;
+let workflowBotId: typeof import('../../../src/config/workflow-bot').workflowBotId;
+
+beforeEach(async () => {
   vi.clearAllMocks();
+  vi.resetModules();
+  ({ workflowConnection, workflowBotId } = await vi.importActual<typeof import('../../../src/config/workflow-bot')>('../../../src/config/workflow-bot'));
   longTail.addBotRole.mockResolvedValue({ status: 200 });
   longTail.createBot.mockResolvedValue({ status: 201, data: { id: 'bot-new', external_id: BOT.WORKFLOWS } });
 });
@@ -69,5 +73,21 @@ describe('workflowConnection', () => {
     longTail.listBots.mockResolvedValue({ status: 200, data: [] });
     longTail.createBot.mockResolvedValue({ status: 403 });
     await expect(workflowConnection()).rejects.toThrow('create bot: 403');
+  });
+});
+
+describe('workflowBotId', () => {
+  it('finds the bot once per process', async () => {
+    longTail.listBots.mockResolvedValue({ status: 200, data: [existing] });
+    expect(await workflowBotId()).toBe(existing.id);
+    expect(await workflowBotId()).toBe(existing.id);
+    expect(longTail.listBots).toHaveBeenCalledTimes(1);
+  });
+
+  it('looks again after a failed search', async () => {
+    longTail.listBots.mockResolvedValueOnce({ status: 500, error: 'database is down' });
+    await expect(workflowBotId()).rejects.toThrow('list bots: database is down');
+    longTail.listBots.mockResolvedValue({ status: 200, data: [existing] });
+    expect(await workflowBotId()).toBe(existing.id);
   });
 });

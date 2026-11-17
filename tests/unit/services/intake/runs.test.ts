@@ -7,7 +7,7 @@ const dbos = vi.hoisted(() => ({
 vi.mock('@dbos-inc/dbos-sdk', () => ({ DBOS: dbos }));
 
 import { dbosRuns } from '../../../../src/services/intake/runs';
-import { fabricateInput } from '../../../helpers/order-fixtures';
+import { makeGlassesInput } from '../../../helpers/order-fixtures';
 
 const workflow = vi.fn(async () => 'done');
 const invoke = vi.fn(async () => ({ workflowID: 'esc-1' }));
@@ -35,19 +35,19 @@ describe('dbosRuns', () => {
   });
 
   it('starts the workflow under the escalation id, with the input', async () => {
-    const input = fabricateInput({ escalationId: 'esc-5' });
+    const input = makeGlassesInput({ escalationId: 'esc-5' });
     await dbosRuns(workflow).start(input);
     expect(dbos.startWorkflow).toHaveBeenCalledWith(workflow, { workflowID: 'esc-5' });
     expect(invoke).toHaveBeenCalledWith(input);
   });
 
   it('starts without running the workflow body itself', async () => {
-    await dbosRuns(workflow).start(fabricateInput());
+    await dbosRuns(workflow).start(makeGlassesInput());
     expect(workflow).not.toHaveBeenCalled();
   });
 
   it('passes a start failure to the caller', async () => {
     invoke.mockRejectedValue(new Error('queue is full'));
-    await expect(dbosRuns(workflow).start(fabricateInput())).rejects.toThrow('queue is full');
+    await expect(dbosRuns(workflow).start(makeGlassesInput())).rejects.toThrow('queue is full');
   });
 });

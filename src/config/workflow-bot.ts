@@ -3,7 +3,7 @@ import type { LongTailConnection } from '@hotmeshio/long-tail-dbos';
 
 import { BOT, ROLE_TYPE } from '../modules/constants';
 
-// Superadmin: the workflows open waits on the machine role the line file declares as well as the floor roles.
+// Superadmin: the workflows open waits on the station roles the line files declare as well as the people roles.
 const BOT_ROLES = [{ role: ROLE_TYPE.SUPERADMIN, type: ROLE_TYPE.SUPERADMIN }];
 
 interface Bot { id: string; external_id: string }
@@ -29,8 +29,16 @@ async function findOrCreateBot(): Promise<Bot> {
   }));
 }
 
+let botId: Promise<string> | undefined;
+
+/** The workflow bot's user id, found or created once per process. */
+export function workflowBotId(): Promise<string> {
+  botId ??= findOrCreateBot().then((bot) => bot.id);
+  botId.catch(() => { botId = undefined; });
+  return botId;
+}
+
 /** How conditional() reaches this site's Long Tail: in process, as the workflow bot. */
 export async function workflowConnection(): Promise<LongTailConnection> {
-  const bot = await findOrCreateBot();
-  return { client: createClient({ auth: { userId: bot.id } }) };
+  return { client: createClient({ auth: { userId: await workflowBotId() } }) };
 }

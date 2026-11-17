@@ -9,7 +9,7 @@ import { spyOnLog } from '../../helpers/log-spy';
 import { cloudRow } from '../../helpers/order-fixtures';
 
 const OUTCOME = { completed: true, units: 2, site: 'site-1' };
-const SIGNAL_KEY = 'fabricate-order-1001';
+const SIGNAL_KEY = 'production-A-1042';
 const report = () => reportOutcome('esc-1', SIGNAL_KEY, OUTCOME);
 const settledRow = (status: string, resolvedBy?: string) => cloudRow({ id: 'esc-1', status, metadata: resolvedBy ? { resolved_by: resolvedBy } : null });
 

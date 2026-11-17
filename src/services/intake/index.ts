@@ -3,16 +3,16 @@ import type { CloudClient } from '../../lib/cloud-client';
 import { log } from '../../lib/logger';
 import { LOG_EVENTS } from '../../modules/constants';
 import { readOrder } from './order';
-import type { FabricationRuns } from './runs';
+import type { ProductionRuns } from './runs';
 import { stageAssets } from './stage';
 
 export { readOrder } from './order';
-export { dbosRuns, type FabricationRuns } from './runs';
+export { dbosRuns, type ProductionRuns } from './runs';
 export { stageAssets } from './stage';
 
 export interface IntakeOptions {
   cloud: CloudClient;
-  runs: FabricationRuns;
+  runs: ProductionRuns;
   role: string;
   batch: number;
   claimMinutes: number;

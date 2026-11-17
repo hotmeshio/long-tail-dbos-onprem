@@ -103,7 +103,7 @@ A site with no printer yet runs the stand-in from the site image:
 multipass exec site-1 -- sudo /opt/onpremsite/enable-mock-printer.sh
 ```
 
-It answers as `printer-01` on the local broker and completes each print in `PRINT_SECONDS` (default 5, set in `site.env`).
+It answers as printer `p1s-01` and the lens stations `edge-01`, `mount-01` and `inspect-01` on the local broker. A print takes `PRINT_SECONDS` (default 5) and a station job `STATION_SECONDS` (default 3), both set in `site.env`.
 
 ## 6. Remote access and MCP sign-in
 

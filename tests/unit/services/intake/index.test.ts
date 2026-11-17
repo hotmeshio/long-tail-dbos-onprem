@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../../../../src/services/intake/stage', () => ({ stageAssets: vi.fn() }));
 
 import { LOG_EVENTS } from '../../../../src/modules/constants';
-import { runIntakeOnce, type FabricationRuns, type IntakeOptions } from '../../../../src/services/intake';
+import { runIntakeOnce, type ProductionRuns, type IntakeOptions } from '../../../../src/services/intake';
 import { stageAssets } from '../../../../src/services/intake/stage';
 import { apiError } from '../../../helpers/api-error-fixture';
 import { fakeCloudClient, type FakeCloudClient } from '../../../helpers/fake-cloud-client';
@@ -11,12 +11,12 @@ import { spyOnLog } from '../../../helpers/log-spy';
 import { INTAKE_ROLE, cloudRow, orderData } from '../../../helpers/order-fixtures';
 
 const stage = vi.mocked(stageAssets);
-const STAGED = orderData().assets.map((asset) => ({ ...asset, name: 'model.stl' }));
+const STAGED = orderData().assets.map((asset) => ({ ...asset, name: 'round-48.gcode.3mf' }));
 // A list row carries no data; the full row comes from cloud.read.
 const listed = (id: string, overrides = {}) => cloudRow({ id, escalation_payload: null, ...overrides });
 
 let cloud: FakeCloudClient;
-let runs: { has: ReturnType<typeof vi.fn<FabricationRuns['has']>>; start: ReturnType<typeof vi.fn<FabricationRuns['start']>> };
+let runs: { has: ReturnType<typeof vi.fn<ProductionRuns['has']>>; start: ReturnType<typeof vi.fn<ProductionRuns['start']>> };
 let logged: ReturnType<typeof spyOnLog>;
 const options = (): IntakeOptions => ({ cloud, runs, role: INTAKE_ROLE, batch: 5, claimMinutes: 60, workDir: '/srv/work', downloadTimeoutMs: 1000 });
 
@@ -57,7 +57,7 @@ describe('runIntakeOnce', () => {
     cloud.listClaimed.mockResolvedValue([listed('esc-1')]);
     await runIntakeOnce(options());
     expect(logged.contexts(LOG_EVENTS.INTAKE_CLAIMED)).toEqual([{ count: 2, escalationIds: ['esc-1', 'esc-2'] }]);
-    expect(logged.contexts(LOG_EVENTS.INTAKE_ORDER_STARTED)).toEqual([{ escalationId: 'esc-1', orderId: 'order-1001' }]);
+    expect(logged.contexts(LOG_EVENTS.INTAKE_ORDER_STARTED)).toEqual([{ escalationId: 'esc-1', orderId: 'A-1042' }]);
   });
 
   it('starts an order held from an earlier pass that claimed nothing new', async () => {
@@ -96,7 +96,7 @@ describe('runIntakeOnce', () => {
     const pass = await runIntakeOnce(options());
     expect(pass).toEqual({ claimed: 0, started: ['esc-2'], skipped: ['esc-1'] });
     expect(logged.contexts(LOG_EVENTS.INTAKE_ORDER_SKIPPED)).toEqual([
-      { escalationId: 'esc-1', error: 'escalation esc-1 is not a fabrication order: orderId is missing' },
+      { escalationId: 'esc-1', error: 'escalation esc-1 is not a production order: orderId is missing' },
     ]);
     expect(runs.start).toHaveBeenCalledTimes(1);
   });

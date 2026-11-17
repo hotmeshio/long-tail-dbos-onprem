@@ -1,10 +1,12 @@
 import { DBOS } from '@dbos-inc/dbos-sdk';
-import { start } from '@hotmeshio/long-tail';
+import { midnightTheme, start } from '@hotmeshio/long-tail';
 import { configureLongTail } from '@hotmeshio/long-tail-dbos';
 import { dbosProvider } from '@hotmeshio/long-tail-dbos/provider';
 
-import { loadSiteLine } from './config/line';
+import { loadLensLine, loadPrintLine } from './config/line';
+import { seedPeople } from './config/people';
 import { roles } from './config/roles';
+import { scanSchemes } from './config/scan-schemes';
 import { WORKER_QUEUES, workers } from './config/workers';
 import { workflowConnection } from './config/workflow-bot';
 import { HttpCloudClient, configureCloud } from './lib/cloud-client';
@@ -13,16 +15,17 @@ import { dbosSystemDatabaseUrl, loadConfig } from './modules/config';
 import { LOG_EVENTS } from './modules/constants';
 import { startAssetServer } from './services/asset-server';
 import { dbosRuns, startIntake } from './services/intake';
-import { fabricateWorkflow } from './workflows';
+import { makeGlassesWorkflow } from './workflows';
 
 try { require('dotenv/config'); } catch { /* env comes from the platform */ }
 
 const SHUTDOWN_GRACE_MS = 8000;
 
 async function main(): Promise<void> {
-  // 1. Settings and the line this site runs
+  // 1. Settings and the lines this site runs
   const config = loadConfig();
-  const line = loadSiteLine(config);
+  const printLine = loadPrintLine(config);
+  const lensLine = loadLensLine(config);
   const systemDatabaseUrl = dbosSystemDatabaseUrl(config);
   const { admin, database, jwtSecret, nats } = config;
 
@@ -30,7 +33,7 @@ async function main(): Promise<void> {
   await DBOS.migrate(systemDatabaseUrl);
   const provider = await dbosProvider({ systemDatabaseUrl });
 
-  // 3. Long Tail: dashboard, queues, and the gateway to the machines on the line
+  // 3. Long Tail: dashboard, queues, and the gateway to the machines on both lines
   const lt = await start({
     database,
     server: { port: config.port },
@@ -39,10 +42,14 @@ async function main(): Promise<void> {
     ...(nats ? { events: { nats } } : {}),
     durable: { provider },
     roles,
+    scanSchemes,
+    features: { scanCodes: true },
     workers,
-    machines: { lines: [line] },
+    machines: { lines: [printLine, lensLine] },
+    branding: { themes: [midnightTheme] },
   });
   configureLongTail(await workflowConnection());
+  log(LOG_EVENTS.PEOPLE_SEEDED, { people: await seedPeople(config.people.password) });
 
   // 4. The cloud this site takes work from
   const cloud = new HttpCloudClient({
@@ -72,7 +79,7 @@ async function main(): Promise<void> {
   // 7. Intake: claim cloud orders and start a run for each
   const intake = startIntake({
     cloud,
-    runs: dbosRuns(fabricateWorkflow),
+    runs: dbosRuns(makeGlassesWorkflow),
     role: config.intake.role,
     batch: config.intake.batch,
     claimMinutes: config.intake.claimMinutes,
@@ -80,7 +87,7 @@ async function main(): Promise<void> {
     downloadTimeoutMs: config.cloud.downloadTimeoutMs,
     pollMs: config.intake.pollMs,
   });
-  log(LOG_EVENTS.SITE_STARTED, { port: config.port, siteId: line.siteId, lineId: line.lineId });
+  log(LOG_EVENTS.SITE_STARTED, { port: config.port, siteId: printLine.siteId, lines: [printLine.lineId, lensLine.lineId] });
 
   // 8. Stop taking work, then close in reverse order
   const closers: Array<[string, () => Promise<unknown> | unknown]> = [

@@ -1,5 +1,5 @@
 # A factory site on one machine: Long Tail on DBOS, Postgres, NATS for the
-# dashboard's live updates, Mosquitto for the machines, and a mock printer.
+# dashboard's live updates, Mosquitto for the machines, and a mock printer and lens line.
 # The site takes its work from a cloud Long Tail at CLOUD_URL; the default
 # points at the long-tail-temporal-cloud stack on this machine.
 services:
@@ -32,7 +32,9 @@ services:
       WORK_DIR: /work
       ASSET_PORT: 3001
       ASSET_BASE_URL: http://app:3001
-      LINE_FILE: lines/site-line.json
+      LINE_FILE: lines/print-line.json
+      LENS_LINE_FILE: lines/lens-line.json
+      PEOPLE_PASSWORD: ${PEOPLE_PASSWORD:-}
       PRINT_TIMEOUT: ${PRINT_TIMEOUT:-10m}
       MACHINE_TRANSPORT: mqtt
       MACHINE_MQTT_URL: mqtt://mosquitto:1883
@@ -42,8 +44,11 @@ services:
         required: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      # The local cloud signs file links against this name.
+      - "files.localhost:host-gateway"
     volumes:
       - ./src:/app/src
+      - ./scripts:/app/scripts
       - ./lines:/app/lines
       - workdir:/work
     depends_on:
@@ -55,10 +60,12 @@ services:
     build: { context: ., target: dev }
     command: ["npx", "tsx", "mock/main.ts"]
     environment:
-      LINE_FILE: lines/site-line.json
-      MACHINE_ID: printer-01
+      LINE_FILE: lines/print-line.json
+      LENS_LINE_FILE: lines/lens-line.json
       MACHINE_MQTT_URL: mqtt://mosquitto:1883
       PRINT_SECONDS: ${PRINT_SECONDS:-5}
+      STATION_SECONDS: ${STATION_SECONDS:-3}
+      STATION_REJECTS: ${STATION_REJECTS:-}
     volumes:
       - ./src:/app/src
       - ./mock:/app/mock

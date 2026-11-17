@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { BIN_DEFAULT, CLOUD_ROLE } from '../../../src/modules/constants';
 import { dbosSystemDatabaseUrl, envInt, envRequired, envStr, loadConfig } from '../../../src/modules/config';
 
 const KEYED = { CLOUD_URL: 'http://cloud.invalid', CLOUD_API_KEY: 'lt_bot_test', CLOUD_BOT_ID: 'bot-test' };
@@ -50,10 +51,13 @@ describe('loadConfig defaults', () => {
     });
   });
 
-  it('defaults intake, assets, the line and the report backoff', () => {
-    expect(config.intake).toEqual({ role: 'fabrication', pollMs: 15_000, claimMinutes: 10_080, batch: 5 });
+  it('defaults intake, assets, the lines, the bin and the report backoff', () => {
+    expect(config.intake).toEqual({ role: CLOUD_ROLE.PRODUCTION, pollMs: 15_000, claimMinutes: 10_080, batch: 5 });
     expect(config.assets).toEqual({ workDir: './work', port: 3001, baseUrl: 'http://localhost:3001' });
-    expect(config.line).toEqual({ file: 'lines/site-line.json', printer: 'printer-01', printTimeout: '4h' });
+    expect(config.line).toEqual({ file: 'lines/print-line.json', printer: 'p1s-01', printModel: 'model-b', printTimeout: '4h' });
+    expect(config.lensLine).toEqual({ file: 'lines/lens-line.json', handoffTimeout: '30m' });
+    expect(config.bin).toEqual({ key: BIN_DEFAULT.KEY, destination: BIN_DEFAULT.DESTINATION, max: BIN_DEFAULT.MAX, timeout: BIN_DEFAULT.TIMEOUT });
+    expect(config.people).toEqual({ password: undefined });
     expect(config.report).toEqual({ baseSeconds: 5, capSeconds: 300 });
   });
 
@@ -67,7 +71,8 @@ describe('loadConfig overrides', () => {
     const config = load({
       PORT: '8080', POSTGRES_HOST: 'db', POSTGRES_PORT: '5433', DBOS__VMID: 'site-2', CLOUD_TIMEOUT_MS: '2000', CLOUD_MAX_RETRIES: '0',
       INTAKE_ROLE: 'assembly', INTAKE_POLL_MS: '1000', INTAKE_BATCH: '1', WORK_DIR: '/data/work', LINE_FILE: 'lines/other.json',
-      PRINT_MACHINE: 'printer-02', PRINT_TIMEOUT: '30m', REPORT_RETRY_BASE_SECONDS: '1', REPORT_RETRY_CAP_SECONDS: '8',
+      PRINT_MACHINE: 'p1s-02', PRINT_MODEL: 'model-c', PRINT_TIMEOUT: '30m', LENS_LINE_FILE: 'lines/lens-2.json', LENS_HANDOFF_TIMEOUT: '10m',
+      BIN_KEY: 'bin-9', BIN_DESTINATION: 'Austin', BIN_MAX: '4', BIN_TIMEOUT: '1h', PEOPLE_PASSWORD: 'shown-to-nobody', REPORT_RETRY_BASE_SECONDS: '1', REPORT_RETRY_CAP_SECONDS: '8',
     });
     expect(config.port).toBe(8080);
     expect(config.database).toMatchObject({ host: 'db', port: 5433 });
@@ -75,7 +80,10 @@ describe('loadConfig overrides', () => {
     expect(config.cloud).toMatchObject({ timeoutMs: 2000, retry: { retries: 0 } });
     expect(config.intake).toMatchObject({ role: 'assembly', pollMs: 1000, batch: 1 });
     expect(config.assets.workDir).toBe('/data/work');
-    expect(config.line).toEqual({ file: 'lines/other.json', printer: 'printer-02', printTimeout: '30m' });
+    expect(config.line).toEqual({ file: 'lines/other.json', printer: 'p1s-02', printModel: 'model-c', printTimeout: '30m' });
+    expect(config.lensLine).toEqual({ file: 'lines/lens-2.json', handoffTimeout: '10m' });
+    expect(config.bin).toEqual({ key: 'bin-9', destination: 'Austin', max: 4, timeout: '1h' });
+    expect(config.people.password).toBe('shown-to-nobody');
     expect(config.report).toEqual({ baseSeconds: 1, capSeconds: 8 });
   });
 
@@ -107,7 +115,7 @@ describe('loadConfig validation', () => {
 
   it.each([
     'ASSET_PORT', 'CLOUD_TIMEOUT_MS', 'CLOUD_DOWNLOAD_TIMEOUT_MS', 'CLOUD_RETRY_BASE_MS', 'CLOUD_RETRY_MAX_MS',
-    'INTAKE_POLL_MS', 'INTAKE_CLAIM_MINUTES', 'INTAKE_BATCH', 'REPORT_RETRY_BASE_SECONDS', 'REPORT_RETRY_CAP_SECONDS',
+    'INTAKE_POLL_MS', 'INTAKE_CLAIM_MINUTES', 'INTAKE_BATCH', 'BIN_MAX', 'REPORT_RETRY_BASE_SECONDS', 'REPORT_RETRY_CAP_SECONDS',
   ])('throws when %s is zero or negative', (name) => {
     expect(() => load({ [name]: '0' })).toThrow(`${name} must be greater than 0, got "0"`);
     expect(() => load({ [name]: '-3' })).toThrow(`${name} must be greater than 0`);

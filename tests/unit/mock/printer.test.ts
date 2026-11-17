@@ -24,7 +24,7 @@ afterEach(async () => {
 
 describe('MockPrinter presence and snapshot', () => {
   it('takes its identity from the line', () => {
-    expect(rig.printer.ident).toEqual({ siteId: 'site-1', lineId: 'line-1', machineId: 'printer-01' });
+    expect(rig.printer.ident).toEqual({ siteId: 'site-1', lineId: 'print-1', machineId: 'p1s-01', address: 'PRN-001' });
   });
 
   it('connects under the client id of its identity', async () => {
@@ -49,12 +49,12 @@ describe('MockPrinter presence and snapshot', () => {
     await rig.printer.start();
     await rig.settle();
     expect(rig.heard.length).toBeGreaterThan(0);
-    for (const msg of rig.heard) expect(msg.source).toEqual({ site: 'site-1', line: 'line-1', machine: 'printer-01' });
+    for (const msg of rig.heard) expect(msg.source).toEqual({ site: 'site-1', line: 'print-1', machine: 'PRN-001', station: 'p1s-01' });
   });
 
   it('logs that it is online with a named event', async () => {
     await rig.printer.start();
-    expect(logged.contexts(LOG_EVENTS.PRINTER_ONLINE)).toEqual([{ machineId: 'printer-01', topicRoot: TOPIC_ROOT }]);
+    expect(logged.contexts(LOG_EVENTS.PRINTER_ONLINE)).toEqual([{ machineId: 'p1s-01', topicRoot: TOPIC_ROOT }]);
   });
 
   it('leaves a will, so a lost link reads as offline', async () => {
@@ -117,7 +117,7 @@ describe('MockPrinter presence and snapshot', () => {
       subscribe: async () => undefined,
       disconnect: async () => undefined,
     };
-    const printer = new MockPrinter(rig.line.machines[0], rig.line, link, { topicRoot: TOPIC_ROOT, printMs: 4, heartbeats: false });
+    const printer = new MockPrinter(rig.line.machines[0], rig.line, link, { topicRoot: TOPIC_ROOT, cycleMs: 4, heartbeats: false });
     await printer.start();
     published.length = 0;
     restore();

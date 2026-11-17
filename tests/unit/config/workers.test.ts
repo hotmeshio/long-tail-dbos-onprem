@@ -4,18 +4,19 @@ import { WORKER_QUEUES, workers } from '../../../src/config/workers';
 import { TASK_QUEUE, WORKFLOW } from '../../../src/modules/constants';
 
 describe('workers', () => {
-  it('registers the fabricate workflow on the site task queue', () => {
-    expect(workers).toHaveLength(1);
-    expect(workers[0]).toMatchObject({ taskQueue: TASK_QUEUE, workflow: WORKFLOW.FABRICATE });
+  it('registers the order workflow and the bin workflow on the site task queue', () => {
+    expect(workers.map((worker) => worker.workflow)).toEqual([WORKFLOW.MAKE_GLASSES, WORKFLOW.ROLLUP_BIN]);
+    for (const worker of workers) expect(worker.taskQueue).toBe(TASK_QUEUE);
   });
 
-  it('keeps fabricate off the invoke page and describes it', () => {
-    expect(workers[0].config).toMatchObject({ invocable: false });
-    expect(workers[0].config?.description).toBeTruthy();
+  it('keeps both off the invoke page and describes them', () => {
+    for (const worker of workers) {
+      expect(worker.config).toMatchObject({ invocable: false });
+      expect(worker.config?.description).toBeTruthy();
+    }
   });
 
   it('lists each task queue once', () => {
     expect(WORKER_QUEUES).toEqual([TASK_QUEUE]);
-    expect(new Set(WORKER_QUEUES).size).toBe(WORKER_QUEUES.length);
   });
 });

@@ -1,4 +1,4 @@
-# Long Tail on DBOS for a factory site. The same image runs the mock printer.
+# Long Tail on DBOS for a factory site. The same image runs the mock machines.
 ARG NODE_IMAGE=node:22-bookworm-slim
 
 FROM ${NODE_IMAGE} AS dev
@@ -9,6 +9,7 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY lines ./lines
 COPY src ./src
 COPY mock ./mock
+COPY scripts ./scripts
 CMD ["npx", "tsx", "watch", "src/index.ts"]
 
 FROM dev AS builder

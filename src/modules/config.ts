@@ -1,3 +1,5 @@
+import { BIN_DEFAULT, CLOUD_ROLE } from './constants';
+
 type Env = NodeJS.ProcessEnv;
 
 export function envStr(env: Env, name: string, fallback: string): string {
@@ -38,6 +40,8 @@ export interface CloudConfig {
 export interface AppConfig {
   port: number;
   admin: { user: string; password?: string; email?: string };
+  /** The password the demo people sign in with. Unset, they are members who cannot sign in. */
+  people: { password?: string };
   jwtSecret?: string;
   database: { connectionString?: string; host: string; port: number; user: string; password: string; database: string };
   nats?: { url: string; wsProxy?: string; token?: string };
@@ -46,7 +50,12 @@ export interface AppConfig {
   intake: { role: string; pollMs: number; claimMinutes: number; batch: number };
   /** Where claimed orders keep their files, and where machines fetch them. */
   assets: { workDir: string; port: number; baseUrl: string };
-  line: { file: string; printer: string; printTimeout: string };
+  /** The print line: its file, the printer orders print on, and what that printer is. */
+  line: { file: string; printer: string; printModel: string; printTimeout: string };
+  /** The lens line: its file and how long one handoff may take. */
+  lensLine: { file: string; handoffTimeout: string };
+  /** The bin boxed orders are placed in. */
+  bin: { key: string; destination: string; max: number; timeout: string };
   /** Wait between attempts to report an outcome while the cloud is unreachable. */
   report: { baseSeconds: number; capSeconds: number };
 }
@@ -64,6 +73,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
       password: env.LT_ADMIN_PASSWORD || undefined,
       email: env.LT_ADMIN_EMAIL || undefined,
     },
+    people: { password: env.PEOPLE_PASSWORD || undefined },
     jwtSecret: env.JWT_SECRET || undefined,
     database: {
       connectionString: env.DATABASE_URL || undefined,
@@ -94,7 +104,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
       },
     },
     intake: {
-      role: envStr(env, 'INTAKE_ROLE', 'fabrication'),
+      role: envStr(env, 'INTAKE_ROLE', CLOUD_ROLE.PRODUCTION),
       pollMs: envPositive(env, 'INTAKE_POLL_MS', 15_000),
       claimMinutes: envPositive(env, 'INTAKE_CLAIM_MINUTES', 10_080),
       batch: envPositive(env, 'INTAKE_BATCH', 5),
@@ -105,9 +115,20 @@ export function loadConfig(env: Env = process.env): AppConfig {
       baseUrl: envStr(env, 'ASSET_BASE_URL', `http://localhost:${assetPort}`).replace(/\/+$/, ''),
     },
     line: {
-      file: envStr(env, 'LINE_FILE', 'lines/site-line.json'),
-      printer: envStr(env, 'PRINT_MACHINE', 'printer-01'),
+      file: envStr(env, 'LINE_FILE', 'lines/print-line.json'),
+      printer: envStr(env, 'PRINT_MACHINE', 'p1s-01'),
+      printModel: envStr(env, 'PRINT_MODEL', 'model-b'),
       printTimeout: envStr(env, 'PRINT_TIMEOUT', '4h'),
+    },
+    lensLine: {
+      file: envStr(env, 'LENS_LINE_FILE', 'lines/lens-line.json'),
+      handoffTimeout: envStr(env, 'LENS_HANDOFF_TIMEOUT', '30m'),
+    },
+    bin: {
+      key: envStr(env, 'BIN_KEY', BIN_DEFAULT.KEY),
+      destination: envStr(env, 'BIN_DESTINATION', BIN_DEFAULT.DESTINATION),
+      max: envPositive(env, 'BIN_MAX', BIN_DEFAULT.MAX),
+      timeout: envStr(env, 'BIN_TIMEOUT', BIN_DEFAULT.TIMEOUT),
     },
     report,
   };

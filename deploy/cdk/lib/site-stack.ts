@@ -14,7 +14,7 @@ const LAUNCH_TYPE = 'EXTERNAL';
 const SERVICE_NAME = 'app';
 const WORK_VOLUME = 'work';
 const WORK_CONTAINER_PATH = '/work';
-const LINE_FILE = 'lines/site-line.json';
+const LINE_FILE = 'lines/print-line.json';
 
 export interface SiteStackProps extends cdk.StackProps {
   repository: ecr.IRepository;

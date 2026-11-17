@@ -1,0 +1,58 @@
+{
+  "siteId": "site-1",
+  "lineId": "line-1",
+  "roles": { "exit": "fitter", "operator": "line-operator", "receivers": ["hand-mount"] },
+  "machines": [
+    {
+      "machineId": "edge-01",
+      "process": "edge",
+      "role": "edge-cell",
+      "description": "Lens edger",
+      "carrier": "none",
+      "cycleSec": 6,
+      "changeoverSec": 0,
+      "rejectReason": "EDGE-FAILED",
+      "queueDepth": 4,
+      "recipes": { "RCP-EDGE-A": ["1"] },
+      "materials": [],
+      "measurements": [],
+      "faults": {},
+      "software": "1.4.0",
+      "allowedSoftware": ["1.4.0"]
+    },
+    {
+      "machineId": "mount-01",
+      "process": "mount",
+      "role": "mount-cell",
+      "description": "Lens mounting press",
+      "carrier": "none",
+      "cycleSec": 8,
+      "changeoverSec": 0,
+      "rejectReason": "MOUNT-FAILED",
+      "queueDepth": 4,
+      "recipes": { "RCP-MOUNT-A": ["1", "2"] },
+      "materials": [],
+      "measurements": [],
+      "faults": {},
+      "software": "1.4.0",
+      "allowedSoftware": ["1.4.0"]
+    },
+    {
+      "machineId": "inspect-01",
+      "process": "inspect",
+      "role": "inspect-cell",
+      "description": "Inspection camera",
+      "carrier": "none",
+      "cycleSec": 4,
+      "changeoverSec": 0,
+      "rejectReason": "INSPECT-REJECT",
+      "queueDepth": 4,
+      "recipes": { "RCP-INSPECT-A": ["1"] },
+      "materials": [],
+      "measurements": [],
+      "faults": {},
+      "software": "1.4.0",
+      "allowedSoftware": ["1.4.0"]
+    }
+  ]
+}

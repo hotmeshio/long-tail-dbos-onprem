@@ -7,7 +7,7 @@ import { spyOnLog } from '../../helpers/log-spy';
 import { ARTIFACT_URL, dispatchArgs, makePrinterHarness, stubArtifact, type PrinterHarness } from '../../helpers/printer-harness';
 
 const { CHANNEL, OP, REPLY_STATUS } = Machines;
-const JOB_ID = 'order-1001-print';
+const JOB_ID = 'A-1042-print';
 
 let rig: PrinterHarness;
 let logged: ReturnType<typeof spyOnLog>;
@@ -31,7 +31,7 @@ describe('MockPrinter dispatch refusals', () => {
     ['no recipe', { recipe: undefined }],
     ['a recipe with no id', { recipe: { version: '1' } }],
     ['no units', { units: [] }],
-    ['units that are not a list', { units: 'order-1001-1' }],
+    ['units that are not a list', { units: 'A-1042-1' }],
   ])('refuses a dispatch with %s', async (_name, overrides) => {
     const artifact = stubArtifact();
     const cmdId = rig.send(OP.DISPATCH, dispatchArgs(overrides));
@@ -63,8 +63,8 @@ describe('MockPrinter dispatch refusals', () => {
 
   it.each([
     ['a file that does not match its checksum', () => stubArtifact('other bytes'), 'artifact checksum mismatch'],
-    ['a file the server does not have', () => stubFetch({ 'GET /esc-1/model.stl': { status: 404, text: 'not found', contentType: 'text/plain' } }), 'artifact fetch 404'],
-    ['a server out of reach', () => stubFetch({ 'GET /esc-1/model.stl': new TypeError('fetch failed') }), 'artifact fetch failed: fetch failed'],
+    ['a file the server does not have', () => stubFetch({ 'GET /esc-1/round-48.gcode.3mf': { status: 404, text: 'not found', contentType: 'text/plain' } }), 'artifact fetch 404'],
+    ['a server out of reach', () => stubFetch({ 'GET /esc-1/round-48.gcode.3mf': new TypeError('fetch failed') }), 'artifact fetch failed: fetch failed'],
   ])('fails a dispatch for %s', async (_name, stub, reason) => {
     stub();
     const cmdId = rig.send(OP.DISPATCH, dispatchArgs());

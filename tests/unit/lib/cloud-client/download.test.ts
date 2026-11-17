@@ -7,12 +7,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '../../../../src/lib/api-request';
 import { downloadFile } from '../../../../src/lib/cloud-client/download';
 import { stubFetch } from '../../../helpers/fetch-stub';
-import { MODEL_BYTES, sha256Of } from '../../../helpers/order-fixtures';
+import { FRAME_BYTES, sha256Of } from '../../../helpers/order-fixtures';
 import { makeWorkDir, type TempWorkDir } from '../../../helpers/temp-work-dir';
 
-const LINK = 'http://files.invalid/orders/1/model.stl';
+const LINK = 'http://files.invalid/orders/1/round-48.gcode.3mf';
 const SIGNED = `${LINK}?signature=secret`;
-const ROUTE = 'GET /orders/1/model.stl';
+const ROUTE = 'GET /orders/1/round-48.gcode.3mf';
 
 let work: TempWorkDir;
 let dest: string;
@@ -25,7 +25,7 @@ async function failure(run: Promise<unknown>): Promise<ApiRequestError> {
 
 beforeEach(async () => {
   work = await makeWorkDir();
-  dest = join(work.path, 'esc-1', 'model.stl');
+  dest = join(work.path, 'esc-1', 'round-48.gcode.3mf');
 });
 
 afterEach(async () => {
@@ -35,27 +35,27 @@ afterEach(async () => {
 
 describe('downloadFile', () => {
   it('writes the file, creating its directory, and returns its checksum and size', async () => {
-    stubFetch({ [ROUTE]: { text: MODEL_BYTES, contentType: 'model/stl' } });
+    stubFetch({ [ROUTE]: { text: FRAME_BYTES, contentType: 'application/octet-stream' } });
     const got = await downloadFile(SIGNED, dest, 1000);
-    expect(got).toEqual({ sha256: sha256Of(MODEL_BYTES), size: Buffer.byteLength(MODEL_BYTES) });
-    expect(await readFile(dest, 'utf8')).toBe(MODEL_BYTES);
+    expect(got).toEqual({ sha256: sha256Of(FRAME_BYTES), size: Buffer.byteLength(FRAME_BYTES) });
+    expect(await readFile(dest, 'utf8')).toBe(FRAME_BYTES);
   });
 
   it('leaves no partial file after success', async () => {
-    stubFetch({ [ROUTE]: { text: MODEL_BYTES } });
+    stubFetch({ [ROUTE]: { text: FRAME_BYTES } });
     await downloadFile(SIGNED, dest, 1000);
-    expect(await readdir(join(work.path, 'esc-1'))).toEqual(['model.stl']);
+    expect(await readdir(join(work.path, 'esc-1'))).toEqual(['round-48.gcode.3mf']);
   });
 
   it('replaces a file already at the destination', async () => {
-    await work.writeAsset('esc-1', 'model.stl', 'stale');
-    stubFetch({ [ROUTE]: { text: MODEL_BYTES } });
+    await work.writeAsset('esc-1', 'round-48.gcode.3mf', 'stale');
+    stubFetch({ [ROUTE]: { text: FRAME_BYTES } });
     await downloadFile(SIGNED, dest, 1000);
-    expect(await readFile(dest, 'utf8')).toBe(MODEL_BYTES);
+    expect(await readFile(dest, 'utf8')).toBe(FRAME_BYTES);
   });
 
   it('requests the full signed link', async () => {
-    const { calls } = stubFetch({ [ROUTE]: { text: MODEL_BYTES } });
+    const { calls } = stubFetch({ [ROUTE]: { text: FRAME_BYTES } });
     await downloadFile(SIGNED, dest, 1000);
     expect(calls).toEqual([{ method: 'GET', url: SIGNED, body: undefined, authorization: undefined }]);
   });
