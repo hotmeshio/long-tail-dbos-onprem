@@ -41,6 +41,7 @@ async function main(): Promise<void> {
     ...(admin.password ? { seed: { admin: { externalId: admin.user, email: admin.email, password: admin.password } } } : {}),
     ...(nats ? { events: { nats } } : {}),
     durable: { provider },
+    configSource: 'code',
     roles,
     scanSchemes,
     features: { scanCodes: true },
