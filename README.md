@@ -160,6 +160,8 @@ deploy/cdk/                 AWS side of the site: registry, cluster, role, secre
 deploy/machine/             Site machine: provisioning, registration, the services beside the app
 ```
 
+The roles, lines and scan schemes are owned by code: every boot applies `src/config/` and the line files to the site's database.
+
 ## Tests
 
 ```bash
