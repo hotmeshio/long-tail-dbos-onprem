@@ -1,6 +1,6 @@
 {
   "name": "long-tail-dbos-onprem",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Long Tail on DBOS for the Acme Eyeglass site: claims production orders from a cloud Long Tail, makes the glasses on the local network, reports back",
   "license": "MIT",
