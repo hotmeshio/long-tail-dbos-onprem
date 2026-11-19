@@ -17,7 +17,13 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y ca-certificates curl jq chrony unattended-upgrades
 
-# 2. Docker Engine with the compose plugin
+# 2. Clock: step whenever it is off by more than a second, so a VM that slept
+# keeps the time its AWS credentials are signed with
+sed -i 's/^makestep .*/makestep 1 -1/' /etc/chrony/chrony.conf
+grep -q '^makestep 1 -1' /etc/chrony/chrony.conf || echo 'makestep 1 -1' >> /etc/chrony/chrony.conf
+systemctl restart chrony
+
+# 3. Docker Engine with the compose plugin
 if ! docker compose version >/dev/null 2>&1; then
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -30,12 +36,12 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 systemctl enable --now docker
 
-# 3. AWS CLI
+# 4. AWS CLI
 if ! command -v aws >/dev/null 2>&1; then
   snap install aws-cli --classic
 fi
 
-# 4. Directories and files
+# 5. Directories and files
 install -d -m 0755 "$INSTALL_DIR" "$SITE_DATA_DIR" "${SITE_DATA_DIR}/work"
 install -d -m 0700 "$CONFIG_DIR" "${SITE_DATA_DIR}/postgres"
 install -m 0644 "${SOURCE_DIR}/docker-compose.yml" "${SOURCE_DIR}/nats.conf" "${SOURCE_DIR}/mosquitto.conf" "${SOURCE_DIR}/machine-paths.sh" "$INSTALL_DIR/"
@@ -48,7 +54,7 @@ set_site_value AWS_REGION "$AWS_REGION"
 set_site_value SITE_DATA_DIR "$SITE_DATA_DIR"
 chmod 0600 "$SITE_ENV"
 
-# 5. Services unit, started by register.sh once the secrets are on disk
+# 6. Services unit, started by register.sh once the secrets are on disk
 cat > "/etc/systemd/system/${SERVICES_UNIT}" <<UNIT
 [Unit]
 Description=Postgres, NATS and Mosquitto for the site
