@@ -45,6 +45,8 @@ On any other host, copy `deploy/machine` over and run `sudo AWS_REGION=us-west-2
 
 It also installs the systemd unit `onpremsite-services`. Running the script again updates the files in place.
 
+Time sync steps the clock whenever it is off by more than a second, so a VM on a laptop that slept is back on time shortly after it wakes. The machine's AWS credentials are signed with that clock. If the ECS agent shows disconnected after a long sleep, check the clock with `chronyc tracking`, then run `sudo systemctl restart amazon-ssm-agent ecs` to fetch fresh credentials and reconnect.
+
 ## 3. Register
 
 Create a one-use activation on your workstation, with the profile that deployed the stacks:
